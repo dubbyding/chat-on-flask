@@ -1,10 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_socketio import SocketIO, join_room
-import psycopg2
+from db import *
 
-conn = psycopg2.connect("dbname='chat' user='roleName' password='password' host='localhost'")
-
-cur = conn.cursor()
 app = Flask(__name__)
 socketio = SocketIO(app)
 
@@ -32,7 +29,7 @@ def handle_join_room_event(data):
     value = cur.fetchall()
     if value is not None:
         socketio.emit('rejoin_room', value)
-    socketio.emit('join_room_announcement', data)
+    socketio.emit('join_room_announcement', data, broadcast=True, include_self=False)
 
 @socketio.on('send_message')
 def handle_send_messsage_event(data):
@@ -43,6 +40,14 @@ def handle_send_messsage_event(data):
     # app.logger.info("{} has sent message to the room {}: {}". format(data["username"], data['room'], data["message"]))
 
     socketio.emit('recieve_message', data)
+
+@socketio.on('typing_status')
+def typing_status_handler(data):
+    socketio.emit('typing_on',data ,broadcast=True, include_self=False)
+
+@socketio.on('disconnect')
+def disconnected():
+    socketio.emit('disconnect')
 
 if __name__ == '__main__':
     socketio.run(app, debug=True)
