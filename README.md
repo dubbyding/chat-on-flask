@@ -19,3 +19,13 @@ In the context of this small project, Roomid and user joined are added to the da
 
 
 #### When sending messages
+
+When Sending messsage, client side sends message through the submit button. By default, submit button does a http POST or GET request. But since we've already connected to the server throught the socket it is not necessary. Hence onsubmit a function is executed which stops the default behavior of the submit button and using `getElementById()` of javascript takes the messages written checks if it is empty or not. If it is empty then it does nothing else it creates a event `send_message` with the datas of username, room number and the message. When that event is created in server side handle_send_message_event() function is triggered which stores messages in the database then creates an event called `recieve_message` which then sends the messages to everyone in the same room added as a parameter of `socket.emit()` function.
+
+This `recieve_message` event is handled on client side by a function which creates a new node inside the chatting area and then inserts a new DIV with message element inside it. It then updates the scroll to show the latest message.
+
+** This is all of the work done inorder to make the chatting feature work. **
+
+### Typing status
+
+This is an optional feature added to show the typing status while sending message. In javascript there is a feature called on keypress/keydown and keyup. In this case, we are using keyup since we have to take the data too. If there is something written i.e. content is more than 1 then typing status is shown and then flag is changed so that if message is cleared and then again reaches 1 then it doesn't again show the typing status. If the message is sent or message is cleared then flag is rest and typing status is removed. Typing status once creates an event named `typing_status`. This event is handled by `typing_status_handler()` function which then creates an event named `typing_on`  broadcasting to everyone excluding self i.e. if I'm typing then that typing won't be shown for me but will be shown for everyone on that room. That event is handled on client side using function to display typing status.
